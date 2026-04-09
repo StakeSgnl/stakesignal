@@ -1,0 +1,5 @@
+solana-py==0.34.0
+anchorpy==0.20.1
+pythclient==0.1.4
+apscheduler==3.10.4
+python-dotenv==1.0.1
