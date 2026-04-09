@@ -11,7 +11,7 @@ pub enum SignalError {
     #[msg("Market is not open")]
     MarketNotOpen,
 
-    #[msg("Market already resolved")]
+    #[msg("Signal market has already been resolved")]
     MarketAlreadyResolved,
 
     #[msg("Resolution time has not been reached")]
@@ -35,13 +35,13 @@ pub enum SignalError {
     #[msg("Position is on the losing side")]
     YouLost,
 
-    #[msg("Winnings already claimed")]
+    #[msg("Payout already collected for this position")]
     AlreadyClaimed,
 
     #[msg("Insufficient LST amount")]
     InsufficientAmount,
 
-    #[msg("Math overflow")]
+    #[msg("Arithmetic overflow in position calculation")]
     MathOverflow,
 
     #[msg("Title exceeds maximum length")]
