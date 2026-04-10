@@ -9,6 +9,11 @@ import { RPC_URL } from '@/lib/constants'
 
 import '@solana/wallet-adapter-react-ui/styles.css'
 
+// Type assertions to fix React 18/19 type incompatibility with wallet adapter
+const Connection = ConnectionProvider as any
+const Wallet = WalletProvider as any
+const WalletModal = WalletModalProvider as any
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -23,14 +28,14 @@ export function Providers({ children }: { children: ReactNode }) {
   const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], [])
 
   return (
-    <ConnectionProvider endpoint={RPC_URL}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
+    <Connection endpoint={RPC_URL}>
+      <Wallet wallets={wallets} autoConnect>
+        <WalletModal>
           <QueryClientProvider client={queryClient}>
             {children}
           </QueryClientProvider>
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+        </WalletModal>
+      </Wallet>
+    </Connection>
   )
 }
