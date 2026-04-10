@@ -73,4 +73,12 @@ pub mod stakesignal {
     pub fn cancel_market(ctx: Context<CancelMarket>) -> Result<()> {
         instructions::cancel_market::handler(ctx)
     }
+
+    pub fn add_lst_mint(ctx: Context<AddLstMint>, mint: Pubkey) -> Result<()> {
+        instructions::add_lst_mint::handler(ctx, mint)
+    }
+
+    pub fn claim_refund(ctx: Context<ClaimRefund>) -> Result<()> {
+        instructions::claim_refund::handler(ctx)
+    }
 }

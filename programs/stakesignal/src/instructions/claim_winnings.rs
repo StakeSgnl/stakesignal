@@ -7,6 +7,12 @@ use crate::constants::*;
 #[derive(Accounts)]
 pub struct ClaimWinnings<'info> {
     #[account(
+        seeds = [FACTORY_SEED],
+        bump = factory.bump,
+    )]
+    pub factory: Account<'info, MarketFactory>,
+
+    #[account(
         seeds = [MARKET_SEED, &market.market_id.to_le_bytes()],
         bump = market.bump,
         constraint = market.status == MarketStatus::Resolved @ SignalError::MarketNotOpen,
@@ -19,6 +25,7 @@ pub struct ClaimWinnings<'info> {
         bump = position.bump,
         constraint = !position.claimed @ SignalError::AlreadyClaimed,
         constraint = position.user == user.key() @ SignalError::Unauthorized,
+        close = user,
     )]
     pub position: Account<'info, UserPosition>,
 
@@ -32,6 +39,7 @@ pub struct ClaimWinnings<'info> {
     #[account(
         mut,
         constraint = user_token_account.owner == user.key() @ SignalError::Unauthorized,
+        constraint = user_token_account.mint == market.lst_mint @ SignalError::UnsupportedLst,
     )]
     pub user_token_account: Account<'info, TokenAccount>,
 
@@ -57,10 +65,14 @@ pub fn handler(ctx: Context<ClaimWinnings>) -> Result<()> {
     };
 
     let fee = losing_pool
-        .checked_mul(market.market_id) // placeholder: use resolution_fee_bps from factory
-        .unwrap_or(0);
+        .checked_mul(ctx.accounts.factory.resolution_fee_bps as u64)
+        .ok_or(SignalError::MathOverflow)?
+        .checked_div(BPS_DENOMINATOR)
+        .ok_or(SignalError::MathOverflow)?;
 
-    let distributable = losing_pool.checked_sub(fee).unwrap_or(losing_pool);
+    let distributable = losing_pool
+        .checked_sub(fee)
+        .ok_or(SignalError::MathOverflow)?;
 
     let user_share = position.lst_amount
         .checked_mul(distributable)

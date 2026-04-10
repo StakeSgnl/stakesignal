@@ -57,6 +57,7 @@ pub fn handler(
     }
 
     let clock = Clock::get()?;
+    require!(resolve_at > clock.unix_timestamp, SignalError::TooEarly);
     let market = &mut ctx.accounts.market;
     market.market_id = ctx.accounts.factory.total_markets;
     market.title = title;

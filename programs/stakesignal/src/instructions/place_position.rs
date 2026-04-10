@@ -57,16 +57,7 @@ pub fn handler(
     // NOTE: yield_at_entry would be fetched from LST exchange rate oracle in production
     let yield_at_entry: u64 = 0;
 
-    let transfer_ctx = CpiContext::new(
-        ctx.accounts.token_program.to_account_info(),
-        Transfer {
-            from: ctx.accounts.user_token_account.to_account_info(),
-            to: ctx.accounts.vault_token_account.to_account_info(),
-            authority: ctx.accounts.user.to_account_info(),
-        },
-    );
-    token::transfer(transfer_ctx, lst_amount)?;
-
+    // state updates BEFORE CPI
     let market = &mut ctx.accounts.market;
     match side {
         Side::Yes => {
@@ -93,6 +84,17 @@ pub fn handler(
     position.placed_at = clock.unix_timestamp;
     position.claimed = false;
     position.bump = ctx.bumps.position;
+
+    // CPI transfer AFTER state updates
+    let transfer_ctx = CpiContext::new(
+        ctx.accounts.token_program.to_account_info(),
+        Transfer {
+            from: ctx.accounts.user_token_account.to_account_info(),
+            to: ctx.accounts.vault_token_account.to_account_info(),
+            authority: ctx.accounts.user.to_account_info(),
+        },
+    );
+    token::transfer(transfer_ctx, lst_amount)?;
 
     Ok(())
 }
