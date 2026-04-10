@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { Providers } from './providers'
+import { WalletButton } from '@/components/WalletButton'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   <a href="/leaderboard" className="hover:text-foreground transition-colors">Leaderboard</a>
                 </nav>
               </div>
+              <WalletButton />
             </header>
             <main className="flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
               {children}

@@ -1,7 +1,13 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
+import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
+import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets'
+import { RPC_URL } from '@/lib/constants'
+
+import '@solana/wallet-adapter-react-ui/styles.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,9 +20,17 @@ const queryClient = new QueryClient({
 })
 
 export function Providers({ children }: { children: ReactNode }) {
+  const wallets = useMemo(() => [new PhantomWalletAdapter(), new SolflareWalletAdapter()], [])
+
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
+    <ConnectionProvider endpoint={RPC_URL}>
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
   )
 }
