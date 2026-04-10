@@ -38,12 +38,13 @@ export default function LeaderboardPage() {
         for (const { account } of accounts) {
           try {
             const d = account.data
-            // UserStats: discriminator(8) + user(32) + total_bets(8) + wins(8) + volume(8)
-            if (d.length < 64 || d.length > 80) continue
+            // UserStats: discriminator(8) + user(32) + total_bets(8) + wins(8) + total_yield_earned(8) + volume(8) + bump(1) = 73
+            if (d.length < 73 || d.length > 80) continue
             let off = 8
             const user = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
             const totalBets = Number(d.readBigUInt64LE(off)); off += 8
             const wins = Number(d.readBigUInt64LE(off)); off += 8
+            off += 8 // total_yield_earned
             const volume = Number(d.readBigUInt64LE(off))
 
             if (totalBets > 0) {

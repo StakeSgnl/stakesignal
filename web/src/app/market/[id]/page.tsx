@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
+import { PublicKey } from '@solana/web3.js'
 import { PROGRAM_ID } from '@/lib/constants'
 import Link from 'next/link'
 

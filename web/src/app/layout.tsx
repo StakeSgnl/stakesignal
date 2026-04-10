@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
+import Link from 'next/link'
 import { Providers } from './providers'
 import { WalletButton } from '@/components/WalletButton'
 import './globals.css'
@@ -19,9 +20,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <div className="flex items-center gap-6">
                 <h1 className="text-lg font-semibold text-brand-700">StakeSignal</h1>
                 <nav className="flex gap-4 text-sm text-muted-foreground">
-                  <a href="/" className="hover:text-foreground transition-colors">Markets</a>
-                  <a href="/portfolio" className="hover:text-foreground transition-colors">Portfolio</a>
-                  <a href="/leaderboard" className="hover:text-foreground transition-colors">Leaderboard</a>
+                  <Link href="/" className="hover:text-foreground transition-colors">Markets</Link>
+                  <Link href="/portfolio" className="hover:text-foreground transition-colors">Portfolio</Link>
+                  <Link href="/leaderboard" className="hover:text-foreground transition-colors">Leaderboard</Link>
                 </nav>
               </div>
               <WalletButton />

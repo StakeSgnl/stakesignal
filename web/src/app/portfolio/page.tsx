@@ -45,11 +45,11 @@ export default function PortfolioPage() {
         for (const { pubkey, account } of accounts) {
           try {
             const d = account.data
-            // Position: discriminator(8) + market(32) + user(32) + prediction(1) + amount(8) + yield_earned(8)
+            // Position: discriminator(8) + user(32) + market(32) + side(1) + lst_amount(8) + yield_at_entry(8) + placed_at(8) + claimed(1) + bump(1)
             if (d.length < 89) continue
             let off = 8
-            const market = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
             const user = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
+            const market = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
             if (user !== publicKey!.toBase58()) continue
             const prediction = d[off] === 1; off += 1
             const amount = Number(d.readBigUInt64LE(off)); off += 8
@@ -92,6 +92,7 @@ export default function PortfolioPage() {
         off += 32 // user pubkey
         const totalBets = Number(d.readBigUInt64LE(off)); off += 8
         const wins = Number(d.readBigUInt64LE(off)); off += 8
+        off += 8 // total_yield_earned
         const volume = Number(d.readBigUInt64LE(off))
 
         setStats({ wins, totalBets, volume })
