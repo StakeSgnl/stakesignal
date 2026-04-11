@@ -51,7 +51,7 @@ export default function PortfolioPage() {
             const user = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
             const market = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
             if (user !== publicKey!.toBase58()) continue
-            const prediction = d[off] === 1; off += 1
+            const prediction = d[off] === 0; off += 1 // Side::Yes = 0, Side::No = 1
             const amount = Number(d.readBigUInt64LE(off)); off += 8
             const yieldEarned = Number(d.readBigUInt64LE(off))
 
@@ -198,7 +198,7 @@ export default function PortfolioPage() {
                   </span>
                   <span>{lamportsToSol(p.amount)} LST</span>
                   <span className="text-green-400">{lamportsToSol(p.yieldEarned)}</span>
-                  <button className="text-xs text-muted-foreground hover:text-foreground border rounded px-2 py-1">
+                  <button className="text-xs text-muted-foreground border rounded px-2 py-1 opacity-50 cursor-not-allowed" disabled title="Coming soon">
                     Early Exit
                   </button>
                 </div>
