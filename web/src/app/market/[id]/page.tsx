@@ -271,7 +271,7 @@ export default function MarketDetailPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs text-muted-foreground">Amount (SOL)</label>
+                    <label className="text-xs text-muted-foreground">Amount (LST)</label>
                     <input
                       type="number"
                       step="0.01"
@@ -357,7 +357,7 @@ export default function MarketDetailPage() {
                     }}
                     disabled={placing || !amount || parseFloat(amount.replace(',', '.')) <= 0}
                   >
-                    {placing ? 'Placing...' : `Place ${amount} SOL on ${side.toUpperCase()}`}
+                    {placing ? 'Placing...' : `Place ${amount} LST on ${side.toUpperCase()}`}
                   </button>
 
                   {txStatus && (
