@@ -43,6 +43,7 @@ pub struct ClaimWinnings<'info> {
     )]
     pub user_token_account: Account<'info, TokenAccount>,
 
+    #[account(mut)]
     pub user: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
@@ -83,7 +84,10 @@ pub fn handler(ctx: Context<ClaimWinnings>) -> Result<()> {
         .checked_add(user_share)
         .ok_or(SignalError::MathOverflow)?;
 
-    // NOTE: vault PDA signer seeds for transfer
+    // state update BEFORE CPI
+    ctx.accounts.position.claimed = true;
+
+    // vault PDA signer seeds for transfer
     let market_key = market.key();
     let vault_bump = ctx.bumps.vault_token_account;
     let signer_seeds: &[&[&[u8]]] = &[&[VAULT_SEED, market_key.as_ref(), &[vault_bump]]];
@@ -98,8 +102,6 @@ pub fn handler(ctx: Context<ClaimWinnings>) -> Result<()> {
         signer_seeds,
     );
     token::transfer(transfer_ctx, payout)?;
-
-    ctx.accounts.position.claimed = true;
 
     Ok(())
 }

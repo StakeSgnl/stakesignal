@@ -16,9 +16,16 @@ pub struct ResolveMarketPyth<'info> {
 
     /// CHECK: Pyth price feed account — validated against market.pyth_feed_id
     #[account(
-        constraint = pyth_price_feed.key().to_bytes()[..8] != [0u8; 8] @ SignalError::OracleFeedMismatch,
+        constraint = market.pyth_feed_id == Some(pyth_price_feed.key().to_bytes()) @ SignalError::OracleFeedMismatch,
     )]
     pub pyth_price_feed: UncheckedAccount<'info>,
+
+    #[account(
+        seeds = [FACTORY_SEED],
+        bump = factory.bump,
+        constraint = factory.authority == crank.key() @ SignalError::Unauthorized,
+    )]
+    pub factory: Account<'info, MarketFactory>,
 
     pub crank: Signer<'info>,
 }

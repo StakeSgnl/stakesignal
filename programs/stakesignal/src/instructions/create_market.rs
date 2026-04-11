@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_spl::token::{Token, TokenAccount};
 use crate::state::*;
 use crate::errors::SignalError;
 use crate::constants::*;
@@ -21,11 +22,23 @@ pub struct CreateMarket<'info> {
     )]
     pub market: Account<'info, PredictionMarket>,
 
+    /// Vault token account for holding LST deposits — PDA seeded by market key
+    #[account(
+        init,
+        payer = creator,
+        seeds = [VAULT_SEED, market.key().as_ref()],
+        bump,
+        token::mint = lst_mint,
+        token::authority = vault_token_account,
+    )]
+    pub vault_token_account: Account<'info, TokenAccount>,
+
     pub lst_mint: Account<'info, anchor_spl::token::Mint>,
 
     #[account(mut)]
     pub creator: Signer<'info>,
 
+    pub token_program: Program<'info, Token>,
     pub system_program: Program<'info, System>,
 }
 

@@ -37,6 +37,7 @@ pub struct ClaimRefund<'info> {
     )]
     pub user_token_account: Account<'info, TokenAccount>,
 
+    #[account(mut)]
     pub user: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }

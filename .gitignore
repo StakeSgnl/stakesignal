@@ -21,3 +21,5 @@ __pycache__/
 .dev-notes/
 WORKLOG.md
 REVIEWS.md
+REFERENCES.md
+deploy-keypair.json

@@ -42,11 +42,16 @@ pub struct EarlyExit<'info> {
     )]
     pub user_token_account: Account<'info, TokenAccount>,
 
+    #[account(mut)]
     pub user: Signer<'info>,
     pub token_program: Program<'info, Token>,
 }
 
 pub fn handler(ctx: Context<EarlyExit>) -> Result<()> {
+    // prevent front-running: no early exit after resolution deadline
+    let clock = Clock::get()?;
+    require!(clock.unix_timestamp < ctx.accounts.market.resolve_at, SignalError::TooLate);
+
     let position = &ctx.accounts.position;
     let factory = &ctx.accounts.factory;
 
