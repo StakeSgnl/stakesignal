@@ -1,11 +1,20 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey } from '@solana/web3.js'
+import { useConnection, useWallet, useAnchorWallet } from '@solana/wallet-adapter-react'
+import { PublicKey, SystemProgram } from '@solana/web3.js'
+import { AnchorProvider, Program, BN } from '@coral-xyz/anchor'
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token'
 import { PROGRAM_ID } from '@/lib/constants'
+import idl from '@/lib/idl.json'
 import Link from 'next/link'
+
+const PROGRAM_KEY = new PublicKey(PROGRAM_ID)
+const enc = new TextEncoder()
+const MARKET_SEED = enc.encode('signal_market')
+const POSITION_SEED = enc.encode('position')
+const VAULT_SEED = enc.encode('vault')
 
 interface MarketData {
   pubkey: string
@@ -46,13 +55,20 @@ export default function MarketDetailPage() {
   const params = useParams()
   const id = params?.id as string
   const { connection } = useConnection()
-  const { publicKey, sendTransaction } = useWallet()
+  const { publicKey } = useWallet()
+  const anchorWallet = useAnchorWallet()
   const [market, setMarket] = useState<MarketData | null>(null)
   const [loading, setLoading] = useState(true)
   const [side, setSide] = useState<'yes' | 'no'>('yes')
   const [amount, setAmount] = useState('0.1')
   const [placing, setPlacing] = useState(false)
   const [txStatus, setTxStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null)
+
+  const program = useMemo(() => {
+    if (!anchorWallet) return null
+    const provider = new AnchorProvider(connection, anchorWallet, { commitment: 'confirmed' })
+    return new Program(idl as any, provider)
+  }, [connection, anchorWallet])
 
   useEffect(() => {
     if (!id) return
@@ -288,8 +304,58 @@ export default function MarketDetailPage() {
                     className={`w-full py-2 rounded-md text-sm font-semibold transition-all ${
                       side === 'yes' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-red-500 hover:bg-red-600'
                     } text-white disabled:opacity-50`}
-                    onClick={() => setTxStatus({ type: 'success', msg: 'Position placement requires the Anchor client — coming soon' })}
-                    disabled={placing || !amount || parseFloat(amount) <= 0}
+                    onClick={async () => {
+                      if (!program || !publicKey || !market) return
+                      setPlacing(true)
+                      setTxStatus(null)
+                      try {
+                        const parsed = parseFloat(amount.replace(',', '.'))
+                        if (isNaN(parsed) || parsed <= 0) {
+                          setTxStatus({ type: 'error', msg: 'Enter a valid amount' })
+                          setPlacing(false)
+                          return
+                        }
+                        const lstAmount = new BN(Math.floor(parsed * 1e9))
+                        const marketKey = new PublicKey(market.pubkey)
+                        const lstMintKey = new PublicKey(market.lstMint)
+
+                        const idBuf = new Uint8Array(8)
+                        new DataView(idBuf.buffer).setBigUint64(0, BigInt(market.marketId), true)
+                        const [marketPda] = PublicKey.findProgramAddressSync([MARKET_SEED, idBuf], PROGRAM_KEY)
+                        const [positionPda] = PublicKey.findProgramAddressSync([POSITION_SEED, marketPda.toBuffer(), publicKey.toBuffer()], PROGRAM_KEY)
+                        const [vaultPda] = PublicKey.findProgramAddressSync([VAULT_SEED, marketPda.toBuffer()], PROGRAM_KEY)
+                        const userAta = await getAssociatedTokenAddress(lstMintKey, publicKey)
+
+                        const betSide = side === 'yes' ? { yes: {} } : { no: {} }
+                        const sig = await program.methods
+                          .placePosition(betSide, lstAmount)
+                          .accountsPartial({
+                            market: marketPda,
+                            position: positionPda,
+                            userTokenAccount: userAta,
+                            vaultTokenAccount: vaultPda,
+                            user: publicKey,
+                            tokenProgram: TOKEN_PROGRAM_ID,
+                            systemProgram: SystemProgram.programId,
+                          })
+                          .rpc()
+                        setTxStatus({ type: 'success', msg: `Position placed! TX: ${sig.slice(0, 16)}...` })
+                      } catch (err: any) {
+                        const msg = err.message || String(err)
+                        if (msg.includes('User rejected')) {
+                          setTxStatus({ type: 'error', msg: 'Transaction rejected' })
+                        } else if (msg.includes('0x0') || msg.includes('already in use')) {
+                          setTxStatus({ type: 'error', msg: 'You already have a position on this market' })
+                        } else if (msg.includes('insufficient')) {
+                          setTxStatus({ type: 'error', msg: 'Insufficient LST token balance' })
+                        } else {
+                          setTxStatus({ type: 'error', msg: msg.slice(0, 100) })
+                        }
+                      } finally {
+                        setPlacing(false)
+                      }
+                    }}
+                    disabled={placing || !amount || parseFloat(amount.replace(',', '.')) <= 0}
                   >
                     {placing ? 'Placing...' : `Place ${amount} SOL on ${side.toUpperCase()}`}
                   </button>
