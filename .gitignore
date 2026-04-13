@@ -1,6 +1,7 @@
 node_modules/
 .next/
 out/
+
 .env
 .env.local
 .env.production
@@ -19,7 +20,3 @@ __pycache__/
 .vercel
 
 .dev-notes/
-WORKLOG.md
-REVIEWS.md
-REFERENCES.md
-deploy-keypair.json

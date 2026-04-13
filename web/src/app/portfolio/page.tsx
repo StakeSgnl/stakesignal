@@ -69,7 +69,7 @@ export default function PortfolioPage() {
 
         setPositions(parsed)
       } catch (err) {
-        console.error('[portfolio]', err)
+        console.warn('portfolio –', err)
       } finally {
         if (!cancelled) setLoading(false)
       }

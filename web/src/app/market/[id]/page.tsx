@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useConnection, useWallet, useAnchorWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, SystemProgram } from '@solana/web3.js'
@@ -64,11 +64,12 @@ export default function MarketDetailPage() {
   const [placing, setPlacing] = useState(false)
   const [txStatus, setTxStatus] = useState<{ type: 'error' | 'success'; msg: string } | null>(null)
 
-  const program = useMemo(() => {
+  const buildProgram = useCallback(() => {
     if (!anchorWallet) return null
-    const provider = new AnchorProvider(connection, anchorWallet, { commitment: 'confirmed' })
-    return new Program(idl as any, provider)
+    const prov = new AnchorProvider(connection, anchorWallet, { commitment: 'processed' })
+    return new Program(idl as any, prov)
   }, [connection, anchorWallet])
+  const program = buildProgram()
 
   useEffect(() => {
     if (!id) return
@@ -104,8 +105,8 @@ export default function MarketDetailPage() {
           yesPool, noPool, totalBettors, createdAt, resolveAt,
           status: status as MarketData['status'], result,
         })
-      } catch (err) {
-        console.error('[market detail]', err)
+      } catch (e: unknown) {
+        console.warn('market-detail:', e)
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -340,8 +341,8 @@ export default function MarketDetailPage() {
                           })
                           .rpc()
                         setTxStatus({ type: 'success', msg: `Position placed! TX: ${sig.slice(0, 16)}...` })
-                      } catch (err: any) {
-                        const msg = err.message || String(err)
+                      } catch (e: unknown) {
+                        const msg = e instanceof Error ? e.message : 'Transaction failed'
                         if (msg.includes('User rejected')) {
                           setTxStatus({ type: 'error', msg: 'Transaction rejected' })
                         } else if (msg.includes('0x0') || msg.includes('already in use')) {

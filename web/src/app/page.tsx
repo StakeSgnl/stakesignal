@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useConnection } from '@solana/wallet-adapter-react'
+import { useQuery } from '@tanstack/react-query'
 import { PublicKey } from '@solana/web3.js'
 import { PROGRAM_ID } from '@/lib/constants'
 import Link from 'next/link'
@@ -32,84 +32,72 @@ function timeLeft(ts: number) {
 
 export default function HomePage() {
   const { connection } = useConnection()
-  const [markets, setMarkets] = useState<Market[]>([])
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!PROGRAM_ID) { setLoading(false); return }
+  const { data: markets = [], isLoading: loading } = useQuery<Market[]>({
+    queryKey: ['markets', connection.rpcEndpoint],
+    queryFn: async () => {
+      if (!PROGRAM_ID) return []
 
-    let cancelled = false
-    async function load() {
-      try {
-        const programKey = new PublicKey(PROGRAM_ID)
-        const accounts = await connection.getProgramAccounts(programKey)
+      const programKey = new PublicKey(PROGRAM_ID)
+      const accounts = await connection.getProgramAccounts(programKey)
+      const parsed: Market[] = []
 
-        if (cancelled) return
-        const parsed: Market[] = []
+      for (const { pubkey, account } of accounts) {
+        try {
+          const d = account.data
+          if (d.length < 100) continue
+          let off = 8 // skip discriminator
+          // Try to detect PredictionMarket by checking field patterns
+          const marketId = Number(d.readBigUInt64LE(off)); off += 8
+          // title: String (4 + bytes)
+          const titleLen = d.readUInt32LE(off); off += 4
+          if (titleLen > 128 || titleLen === 0) continue
+          const title = d.subarray(off, off + titleLen).toString('utf8'); off += titleLen
+          // description: String (4 + bytes)
+          const descLen = d.readUInt32LE(off); off += 4
+          if (descLen > 256) continue
+          off += descLen
+          // creator: Pubkey (32)
+          off += 32
+          // lst_mint: Pubkey (32)
+          off += 32
+          // yes_pool: u64
+          const yesPool = Number(d.readBigUInt64LE(off)); off += 8
+          // no_pool: u64
+          const noPool = Number(d.readBigUInt64LE(off)); off += 8
+          // total_bettors: u32
+          const totalBettors = d.readUInt32LE(off); off += 4
+          // created_at: i64
+          off += 8
+          // resolve_at: i64
+          const resolveAt = Number(d.readBigInt64LE(off)); off += 8
+          // status: enum (1 byte)
+          const statusByte = d[off]; off += 1
+          const status = statusByte === 0 ? 'Open' : statusByte === 1 ? 'Resolved' : 'Cancelled'
+          // result: Option<bool>
+          const resultTag = d[off]; off += 1
+          const result = resultTag === 1 ? d[off] === 1 : null
 
-        for (const { pubkey, account } of accounts) {
-          try {
-            const d = account.data
-            if (d.length < 100) continue
-            let off = 8 // skip discriminator
-            // Try to detect PredictionMarket by checking field patterns
-            const marketId = Number(d.readBigUInt64LE(off)); off += 8
-            // title: String (4 + bytes)
-            const titleLen = d.readUInt32LE(off); off += 4
-            if (titleLen > 128 || titleLen === 0) continue
-            const title = d.subarray(off, off + titleLen).toString('utf8'); off += titleLen
-            // description: String (4 + bytes)
-            const descLen = d.readUInt32LE(off); off += 4
-            if (descLen > 256) continue
-            off += descLen
-            // creator: Pubkey (32)
-            off += 32
-            // lst_mint: Pubkey (32)
-            off += 32
-            // yes_pool: u64
-            const yesPool = Number(d.readBigUInt64LE(off)); off += 8
-            // no_pool: u64
-            const noPool = Number(d.readBigUInt64LE(off)); off += 8
-            // total_bettors: u32
-            const totalBettors = d.readUInt32LE(off); off += 4
-            // created_at: i64
-            off += 8
-            // resolve_at: i64
-            const resolveAt = Number(d.readBigInt64LE(off)); off += 8
-            // status: enum (1 byte)
-            const statusByte = d[off]; off += 1
-            const status = statusByte === 0 ? 'Open' : statusByte === 1 ? 'Resolved' : 'Cancelled'
-            // result: Option<bool>
-            const resultTag = d[off]; off += 1
-            const result = resultTag === 1 ? d[off] === 1 : null
-
-            parsed.push({
-              pubkey: pubkey.toBase58(),
-              marketId,
-              title,
-              yesPool,
-              noPool,
-              totalBettors,
-              resolveAt,
-              status: status as Market['status'],
-              result,
-            })
-          } catch {
-            // skip non-market accounts
-          }
+          parsed.push({
+            pubkey: pubkey.toBase58(),
+            marketId,
+            title,
+            yesPool,
+            noPool,
+            totalBettors,
+            resolveAt,
+            status: status as Market['status'],
+            result,
+          })
+        } catch {
+          // skip non-market accounts
         }
-
-        setMarkets(parsed.sort((a, b) => b.marketId - a.marketId))
-      } catch (err) {
-        console.error('[markets]', err)
-      } finally {
-        if (!cancelled) setLoading(false)
       }
-    }
 
-    load()
-    return () => { cancelled = true }
-  }, [connection])
+      return parsed.sort((a, b) => b.marketId - a.marketId)
+    },
+    staleTime: 30_000,
+  })
 
   return (
     <div className="space-y-8">
