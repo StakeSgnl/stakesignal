@@ -3,6 +3,9 @@ import os
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Union
+
+from solders.keypair import Keypair as _SoldersKeypair
 
 try:
     from dotenv import load_dotenv
@@ -58,8 +61,12 @@ FEED_REGISTRY = {
 }
 
 
-def load_keypair_bytes(path: str) -> bytes:
-    resolved = Path(path).expanduser()
-    with open(resolved, 'r') as fh:
-        data = json.load(fh)
-    return bytes(data[:64])
+def read_crank_keypair(path: Union[str, os.PathLike]) -> _SoldersKeypair:
+    """Materialize the crank service keypair from a Solana CLI JSON file.
+
+    Accepts any os.PathLike (str, pathlib.Path). Returns a solders Keypair
+    ready for signing — callers should not need to touch raw bytes.
+    """
+    src = Path(path).expanduser()
+    secret = json.loads(src.read_text())
+    return _SoldersKeypair.from_bytes(bytes(secret[:64]))
