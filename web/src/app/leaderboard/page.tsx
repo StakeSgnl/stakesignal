@@ -17,8 +17,10 @@ function lamportsToSol(l: number) {
   return (l / 1e9).toFixed(2)
 }
 
+const SHORT_ADDR_RE = /^(.{4}).+(.{4})$/
+
 function shortAddr(addr: string) {
-  return addr.slice(0, 4) + '...' + addr.slice(-4)
+  return addr.replace(SHORT_ADDR_RE, '$1…$2')
 }
 
 // ── Demo leaderboard ────────────────────────────────────────────────
