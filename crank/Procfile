@@ -1,0 +1,1 @@
+resolver: python -u pyth_resolver.py
