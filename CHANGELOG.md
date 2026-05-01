@@ -2,6 +2,16 @@
 
 All notable changes to StakeSignal — prediction markets with LST collateral.
 
+## [0.6.6] — final-stretch polish
+
+### Added
+- Time-left helper extracted to `web/src/lib/timeLeft.ts` with UTC-agnostic formatter and `soon`/`ended` short labels
+- Setup walkthrough at `docs/setup.md` covering contract, crank, and frontend end-to-end
+- Common-issues troubleshooting section in setup doc
+
+### Changed
+- Time-left formatting now used identically across signals page, market detail, and portfolio (no more drift)
+
 ## [0.6.5] — phase 6.5 polish
 
 ### Added
