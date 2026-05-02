@@ -7,6 +7,7 @@ import { PublicKey } from '@solana/web3.js'
 import { PROGRAM_ID } from '@/lib/constants'
 import Link from 'next/link'
 import { Activity, Calendar, CalendarDays, CalendarRange, Clock, Coins, Globe, Landmark, Server, TrendingUp, Users, Zap } from 'lucide-react'
+import { FaucetDialog } from '@/components/FaucetDialog'
 
 type TimeHorizon = 'all' | 'daily' | 'weekly' | 'monthly'
 type CategoryFilter = 'all' | 'network' | 'mev' | 'defi' | 'validators'
@@ -158,27 +159,36 @@ export default function HomePage() {
     staleTime: 10_000,
   })
 
+  // Hide markets whose resolve window has passed — they belong in /portfolio for claim
+  const now = Date.now() / 1000
+  const active = markets.filter((m) => m.status === 'Open' && m.resolveAt > now)
+
   // Apply filters
-  const filtered = markets.filter((m) => {
+  const filtered = active.filter((m) => {
     if (horizon !== 'all' && detectHorizon(m.createdAt, m.resolveAt) !== horizon) return false
     if (category !== 'all' && detectCategory(m.title) !== category) return false
     return true
   })
 
-  const totalPooled = markets.reduce((s, m) => s + m.yesPool + m.noPool, 0)
-  const totalSignalers = markets.reduce((s, m) => s + m.totalBettors, 0)
-  const openCount = markets.filter((m) => m.status === 'Open').length
+  const totalPooled = active.reduce((s, m) => s + m.yesPool + m.noPool, 0)
+  const totalSignalers = active.reduce((s, m) => s + m.totalBettors, 0)
+  const openCount = active.length
 
   return (
     <div className="space-y-6">
       {/* Hero strip */}
       <div className="glass-card-elevated rounded-2xl px-6 py-5 animate-fade-up">
-        <h2 className="text-xl font-bold tracking-tight text-foreground">
-          Stake. Predict. Earn yield.
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Your LST works while you wait &mdash; deposit mSOL or jitoSOL and earn staking yield on every position.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              Stake. Predict. Earn yield.
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your LST works while you wait &mdash; deposit mSOL or jitoSOL and earn staking yield on every position.
+            </p>
+          </div>
+          <FaucetDialog />
+        </div>
 
         {!loading && markets.length > 0 && (
           <div className="flex flex-wrap gap-4 mt-4">
