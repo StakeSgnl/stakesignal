@@ -644,7 +644,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center gap-4 text-xs text-brand-400">
                 <a
-                  href="https://github.com/StakeSgnl/stakesignal"
+                  href="https://github.com/anna-k-eth/stakesignal"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="editorial-underline hover:text-white transition-colors"
@@ -652,7 +652,7 @@ export default function LandingPage() {
                   GitHub
                 </a>
                 <a
-                  href="https://x.com/_StakeSignal"
+                  href="https://x.com/stakesignal_xyz"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="editorial-underline hover:text-white transition-colors"

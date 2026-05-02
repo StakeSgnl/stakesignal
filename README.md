@@ -1,10 +1,6 @@
 # StakeSignal
 
-![status](https://img.shields.io/badge/status-live%20%C2%B7%20devnet-3b82f6?style=flat-square) ![chain](https://img.shields.io/badge/chain-solana-9945ff?style=flat-square) ![pyth](https://img.shields.io/badge/oracle-pyth-blueviolet?style=flat-square)
-
 **Prediction markets backed by liquid staking tokens.**
-
-> live demo · devnet → [stakesignal.vercel.app](https://stakesignal.vercel.app)
 
 ## Problem
 
@@ -51,15 +47,6 @@ The system consists of three main components:
 - **On-chain program**: Handles market creation, position management, LST deposits, and payout distribution
 - **Next.js frontend**: Dashboard for browsing markets, managing positions, and viewing yield
 - **Python crank**: Monitors Pyth oracle feeds and resolves expired markets
-
-## Screens
-
-| | |
-|---|---|
-| ![dashboard](docs/screenshots/dashboard.png) | ![market detail](docs/screenshots/market-detail.png) |
-| **dashboard** — markets, your positions, yield curve | **market detail** — pool sides, oracle feed, position panel |
-
-> placeholders — drop fresh PNGs into `docs/screenshots/` once captured from the live build.
 
 ## License
 
