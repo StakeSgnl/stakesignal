@@ -48,15 +48,6 @@ The system consists of three main components:
 - **Next.js frontend**: Dashboard for browsing markets, managing positions, and viewing yield
 - **Python crank**: Monitors Pyth oracle feeds and resolves expired markets
 
-## Screens
-
-| | |
-|---|---|
-| ![dashboard](docs/screenshots/dashboard.png) | ![market detail](docs/screenshots/market-detail.png) |
-| **dashboard** — markets, your positions, yield curve | **market detail** — pool sides, oracle feed, position panel |
-
-> placeholders — drop fresh PNGs into `docs/screenshots/` once captured from the live build.
-
 ## License
 
 MIT
