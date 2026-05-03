@@ -11,6 +11,16 @@ export const metadata: Metadata = {
     icon: '/favicon.png',
     apple: '/apple-touch-icon.png',
   },
+  openGraph: {
+    title: 'StakeSignal · LST Prediction Markets',
+    description: 'Earn yield while you predict. Prediction markets collateralized by mSOL, jitoSOL, bSOL.',
+    type: 'website',
+    images: ['/og.svg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/og.svg'],
+  },
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
