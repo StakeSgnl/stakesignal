@@ -1,1 +1,1 @@
-worker: python pyth_resolver.py
+resolver: python -u pyth_resolver.py

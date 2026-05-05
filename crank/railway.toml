@@ -1,7 +1,13 @@
+# StakeSignal pyth resolver — runs on Railway as a worker service.
+# Polls open Pyth-resolution markets every RESOLVE_CHECK_INTERVAL_MINUTES.
+
 [build]
-builder = "NIXPACKS"
+builder        = "NIXPACKS"
+buildCommand   = "pip install -r requirements.txt"
 
 [deploy]
-startCommand = "python pyth_resolver.py"
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 10
+startCommand        = "python -u pyth_resolver.py"
+healthcheckPath     = ""
+restartPolicyType   = "ALWAYS"
+sleepApplication    = false
+numReplicas         = 1
