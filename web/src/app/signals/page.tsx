@@ -158,16 +158,20 @@ export default function HomePage() {
     staleTime: 10_000,
   })
 
+  // Hide markets whose resolve window has passed — they belong in /portfolio for claim
+  const now = Date.now() / 1000
+  const active = markets.filter((m) => m.status === 'Open' && m.resolveAt > now)
+
   // Apply filters
-  const filtered = markets.filter((m) => {
+  const filtered = active.filter((m) => {
     if (horizon !== 'all' && detectHorizon(m.createdAt, m.resolveAt) !== horizon) return false
     if (category !== 'all' && detectCategory(m.title) !== category) return false
     return true
   })
 
-  const totalPooled = markets.reduce((s, m) => s + m.yesPool + m.noPool, 0)
-  const totalSignalers = markets.reduce((s, m) => s + m.totalBettors, 0)
-  const openCount = markets.filter((m) => m.status === 'Open').length
+  const totalPooled = active.reduce((s, m) => s + m.yesPool + m.noPool, 0)
+  const totalSignalers = active.reduce((s, m) => s + m.totalBettors, 0)
+  const openCount = active.length
 
   return (
     <div className="space-y-6">
