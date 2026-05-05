@@ -1,0 +1,33 @@
+# Rust + Anchor build outputs
+target
+.anchor
+test-ledger
+Cargo.lock
+Cargo.toml
+Anchor.toml
+
+# Python crank — separate Railway service
+crank
+
+# Anchor source
+programs
+tests
+migrations
+scripts
+
+# Local artifacts
+node_modules
+**/node_modules
+.next
+**/.next
+out
+**/out
+
+# Keypairs
+deploy-keypair.json
+*-keypair.json
+
+# Local env
+.env
+.env.*
+!.env.example

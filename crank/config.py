@@ -62,11 +62,23 @@ FEED_REGISTRY = {
 
 
 def read_crank_keypair(path: Union[str, os.PathLike]) -> _SoldersKeypair:
-    """Materialize the crank service keypair from a Solana CLI JSON file.
+    """Materialize the crank service keypair.
 
-    Accepts any os.PathLike (str, pathlib.Path). Returns a solders Keypair
-    ready for signing — callers should not need to touch raw bytes.
+    Resolution order:
+      1. CRANK_KEYPAIR_JSON env (inline JSON array, with or without [])
+      2. Filesystem path (local dev)
+
+    Returns a solders Keypair ready for signing.
     """
+    inline = os.getenv('CRANK_KEYPAIR_JSON', '').strip()
+    if inline:
+        if inline.startswith('['):
+            secret = json.loads(inline)
+        else:
+            cleaned = inline.lstrip('([').rstrip(')]')
+            secret = [int(n) for n in cleaned.split(',') if n.strip()]
+        return _SoldersKeypair.from_bytes(bytes(secret[:64]))
+
     src = Path(path).expanduser()
     secret = json.loads(src.read_text())
     return _SoldersKeypair.from_bytes(bytes(secret[:64]))

@@ -58,6 +58,7 @@ def fetch_all_open_markets() -> list[dict]:
         response = rpcClient.get_program_accounts(
             PROGRAM_PUBKEY,
             commitment=Confirmed,
+            encoding='base64',
         )
         if response.value is None:
             return []
