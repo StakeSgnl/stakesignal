@@ -7,6 +7,7 @@ import { PublicKey } from '@solana/web3.js'
 import { PROGRAM_ID } from '@/lib/constants'
 import Link from 'next/link'
 import { Activity, Calendar, CalendarDays, CalendarRange, Clock, Coins, Globe, Landmark, Server, TrendingUp, Users, Zap } from 'lucide-react'
+import { FaucetDialog } from '@/components/FaucetDialog'
 
 type TimeHorizon = 'all' | 'daily' | 'weekly' | 'monthly'
 type CategoryFilter = 'all' | 'network' | 'mev' | 'defi' | 'validators'
@@ -177,12 +178,17 @@ export default function HomePage() {
     <div className="space-y-6">
       {/* Hero strip */}
       <div className="glass-card-elevated rounded-2xl px-6 py-5 animate-fade-up">
-        <h2 className="text-xl font-bold tracking-tight text-foreground">
-          Stake. Predict. Earn yield.
-        </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Your LST works while you wait &mdash; deposit mSOL or jitoSOL and earn staking yield on every position.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              Stake. Predict. Earn yield.
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Your LST works while you wait &mdash; deposit mSOL or jitoSOL and earn staking yield on every position.
+            </p>
+          </div>
+          <FaucetDialog />
+        </div>
 
         {!loading && markets.length > 0 && (
           <div className="flex flex-wrap gap-4 mt-4">
