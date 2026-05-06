@@ -9,6 +9,7 @@ import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token'
 import { PROGRAM_ID } from '@/lib/constants'
 import idl from '@/lib/idl.json'
 import Link from 'next/link'
+import { ArrowLeft, Calendar, CalendarDays, CalendarRange, Clock, Coins, Globe, Hash, Landmark, Server, Timer, TrendingUp, Users, Zap } from 'lucide-react'
 
 const PROGRAM_KEY = new PublicKey(PROGRAM_ID)
 const enc = new TextEncoder()
@@ -35,10 +36,14 @@ function lamportsToSol(l: number) {
   return (l / 1e9).toFixed(4)
 }
 
-function formatDate(ts: number) {
-  return new Date(ts * 1000).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-  })
+function formatDateUTC(ts: number) {
+  const d = new Date(ts * 1000)
+  const month = d.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' })
+  const day = d.getUTCDate()
+  const year = d.getUTCFullYear()
+  const h = String(d.getUTCHours()).padStart(2, '0')
+  const min = String(d.getUTCMinutes()).padStart(2, '0')
+  return `${month} ${day}, ${year} ${h}:${min} UTC`
 }
 
 function timeLeft(ts: number) {
@@ -48,7 +53,55 @@ function timeLeft(ts: number) {
   const h = Math.floor((diff % 86400) / 3600)
   const m = Math.floor((diff % 3600) / 60)
   if (d > 0) return `${d}d ${h}h`
-  return `${h}h ${m}m`
+  if (h > 0) return `${h}h ${m}m`
+  return `${m}m`
+}
+
+function detectHorizon(createdAt: number, resolveAt: number): 'daily' | 'weekly' | 'monthly' {
+  const durationDays = (resolveAt - createdAt) / 86400
+  if (durationDays <= 2) return 'daily'
+  if (durationDays <= 14) return 'weekly'
+  return 'monthly'
+}
+
+function detectCategory(title: string, desc?: string): 'network' | 'mev' | 'defi' | 'validators' {
+  const t = (title + ' ' + (desc || '')).toLowerCase()
+  if (t.includes('jito') || t.includes('priority fee') || t.includes('mev') || t.includes('bribe') || t.includes('bundle') || t.includes('tip')) return 'mev'
+  if (t.includes('staked') || t.includes('validator') || t.includes('epoch') || t.includes('stake pool')) return 'validators'
+  if (t.includes('token') || t.includes('tvl') || t.includes('mcap') || t.includes('market cap') || t.includes('swap') || t.includes('liquidity') || t.includes('defi')) return 'defi'
+  return 'network'
+}
+
+const horizonMeta = {
+  daily:   { label: 'Daily',   icon: Calendar,      color: 'bg-amber-500/10 text-amber-700 border-amber-200/50' },
+  weekly:  { label: 'Weekly',  icon: CalendarDays,   color: 'bg-brand-500/10 text-brand-700 border-brand-200/50' },
+  monthly: { label: 'Monthly', icon: CalendarRange,  color: 'bg-violet-500/10 text-violet-700 border-violet-200/50' },
+} as const
+
+const categoryMeta: Record<string, { label: string; icon: typeof Globe; color: string }> = {
+  network:    { label: 'Network',    icon: Globe,       color: 'bg-emerald-500/10 text-emerald-700 border-emerald-200/50' },
+  mev:        { label: 'MEV',        icon: Zap,         color: 'bg-orange-500/10 text-orange-700 border-orange-200/50' },
+  defi:       { label: 'DeFi',       icon: TrendingUp,  color: 'bg-blue-500/10 text-blue-700 border-blue-200/50' },
+  validators: { label: 'Validators', icon: Server,      color: 'bg-violet-500/10 text-violet-700 border-violet-200/50' },
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-5 w-48 rounded-md bg-brand-100/40 shimmer" />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2 glass-card rounded-xl p-6 space-y-4 shimmer">
+          <div className="h-5 w-2/3 rounded-md bg-brand-100/50" />
+          <div className="h-32 rounded-lg bg-brand-100/30" />
+        </div>
+        <div className="glass-card rounded-xl p-6 space-y-4 shimmer">
+          <div className="h-4 w-1/2 rounded-md bg-brand-100/40" />
+          <div className="h-10 rounded-lg bg-brand-100/30" />
+          <div className="h-10 rounded-lg bg-brand-100/30" />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function MarketDetailPage() {
@@ -82,13 +135,18 @@ export default function MarketDetailPage() {
         if (cancelled || !info) { setLoading(false); return }
 
         const d = info.data
+        if (d.length < 100) { setLoading(false); return }
         let off = 8
         const marketId = Number(d.readBigUInt64LE(off)); off += 8
         const titleLen = d.readUInt32LE(off); off += 4
+        if (titleLen > 128 || titleLen === 0 || off + titleLen > d.length) { setLoading(false); return }
         const title = d.subarray(off, off + titleLen).toString('utf8'); off += titleLen
+        if (off + 4 > d.length) { setLoading(false); return }
         const descLen = d.readUInt32LE(off); off += 4
+        if (descLen > 256 || off + descLen > d.length) { setLoading(false); return }
         const description = d.subarray(off, off + descLen).toString('utf8'); off += descLen
         off += 32 // creator
+        if (off + 32 + 8 + 8 + 4 + 8 + 8 + 2 > d.length) { setLoading(false); return }
         const lstMint = new PublicKey(d.subarray(off, off + 32)).toBase58(); off += 32
         const yesPool = Number(d.readBigUInt64LE(off)); off += 8
         const noPool = Number(d.readBigUInt64LE(off)); off += 8
@@ -98,7 +156,7 @@ export default function MarketDetailPage() {
         const statusByte = d[off]; off += 1
         const status = statusByte === 0 ? 'Open' : statusByte === 1 ? 'Resolved' : 'Cancelled'
         const resultTag = d[off]; off += 1
-        const result = resultTag === 1 ? d[off] === 1 : null
+        const result = resultTag === 1 && off < d.length ? d[off] === 1 : null
 
         setMarket({
           pubkey: id, marketId, title, description, lstMint,
@@ -116,31 +174,17 @@ export default function MarketDetailPage() {
     return () => { cancelled = true }
   }, [id, connection])
 
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="h-6 w-1/3 rounded bg-muted animate-pulse" />
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 rounded-lg border bg-card p-6 space-y-4">
-            <div className="h-4 w-2/3 rounded bg-muted animate-pulse" />
-            <div className="h-40 rounded bg-muted animate-pulse" />
-          </div>
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <div className="h-4 w-1/2 rounded bg-muted animate-pulse" />
-            <div className="h-10 rounded bg-muted animate-pulse" />
-            <div className="h-10 rounded bg-muted animate-pulse" />
-          </div>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <DetailSkeleton />
 
   if (!market) {
     return (
-      <div className="text-center py-16 text-muted-foreground">
-        <p className="text-lg">Market not found</p>
+      <div className="glass-card rounded-2xl p-12 text-center">
+        <div className="mx-auto h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Hash className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <p className="text-lg font-semibold">Signal not found</p>
         <Link href="/" className="text-sm text-brand-600 hover:underline mt-2 inline-block">
-          Back to markets
+          Back to signals
         </Link>
       </div>
     )
@@ -148,122 +192,142 @@ export default function MarketDetailPage() {
 
   const total = market.yesPool + market.noPool
   const yesPct = total > 0 ? Math.round((market.yesPool / total) * 100) : 50
+  const hz = detectHorizon(market.createdAt, market.resolveAt)
+  const hzInfo = horizonMeta[hz]
+  const HzIcon = hzInfo.icon
+  const cat = detectCategory(market.title, market.description)
+  const catInfo = categoryMeta[cat]
+  const CatIcon = catInfo.icon
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Link href="/" className="text-muted-foreground text-sm hover:text-foreground">
-          &larr; Markets
+    <div className="space-y-5">
+      {/* Breadcrumb + tags */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span>All Signals</span>
         </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-sm font-medium">{market.title}</span>
+        <div className="flex items-center gap-1.5">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${hzInfo.color}`}>
+            <HzIcon className="h-3 w-3" />
+            {hzInfo.label}
+          </span>
+          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${catInfo.color}`}>
+            <CatIcon className="h-3 w-3" />
+            {catInfo.label}
+          </span>
+        </div>
       </div>
 
       {market.status === 'Resolved' && (
-        <div className={`rounded-lg p-3 text-sm font-semibold ${
-          market.result ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+        <div className={`glass-card rounded-xl p-3.5 text-sm font-semibold flex items-center gap-2 ${
+          market.result
+            ? 'border-emerald-200 bg-emerald-50/60 text-emerald-700'
+            : 'border-violet-200 bg-violet-50/60 text-violet-700'
         }`}>
+          <Zap className="h-4 w-4" />
           Resolved: {market.result ? 'YES' : 'NO'}
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left: Market info */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <h2 className="text-xl font-semibold">{market.title}</h2>
+      <div className="grid gap-5 lg:grid-cols-3">
+        {/* Left column: Market info */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Title card */}
+          <div className="glass-card-elevated rounded-xl p-6 space-y-4 animate-fade-up">
+            <h2 className="text-lg font-bold leading-snug">{market.title}</h2>
             {market.description && (
-              <p className="text-sm text-muted-foreground">{market.description}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{market.description}</p>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              <div>
-                <div className="text-muted-foreground text-xs">Total LST</div>
-                <div className="font-semibold">{lamportsToSol(total)}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Positions</div>
-                <div className="font-semibold">{market.totalBettors}</div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Time Left</div>
-                <div className="font-semibold">
-                  {market.status === 'Open' ? timeLeft(market.resolveAt) : market.status}
-                </div>
-              </div>
-              <div>
-                <div className="text-muted-foreground text-xs">Resolves</div>
-                <div className="font-semibold text-xs">{formatDate(market.resolveAt)}</div>
-              </div>
+            {/* Stats pills */}
+            <div className="flex flex-wrap gap-2.5">
+              <StatPill icon={Coins} label="Total LST" value={lamportsToSol(total)} />
+              <StatPill icon={Users} label="Positions" value={String(market.totalBettors)} />
+              <StatPill
+                icon={Timer}
+                label="Time Left"
+                value={market.status === 'Open' ? timeLeft(market.resolveAt) : market.status}
+              />
+              <StatPill icon={Clock} label="Resolves" value={formatDateUTC(market.resolveAt)} small />
             </div>
           </div>
 
-          {/* Pool distribution */}
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <h3 className="font-semibold text-sm">Pool Distribution</h3>
-            <div className="flex gap-3">
-              <div className="flex-1 text-center p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                <div className="text-2xl font-bold text-blue-400">{yesPct}%</div>
-                <div className="text-xs text-muted-foreground mt-1">YES Pool</div>
-                <div className="text-sm font-medium mt-1">{lamportsToSol(market.yesPool)} LST</div>
+          {/* Signal Sentiment */}
+          <div className="glass-card rounded-xl p-6 space-y-4 animate-fade-up" style={{ animationDelay: '80ms' }}>
+            <h3 className="font-semibold text-sm">Signal Sentiment</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-emerald-500/8 border border-emerald-200/60 p-4 text-center animate-scale-in" style={{ animationDelay: '150ms' }}>
+                <div className="text-2xl font-extrabold text-emerald-600">{yesPct}%</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wide">Yes Signal</div>
+                <div className="text-sm font-semibold mt-1 text-emerald-700">{lamportsToSol(market.yesPool)} LST</div>
               </div>
-              <div className="flex-1 text-center p-4 rounded-lg bg-red-500/10 border border-red-500/20">
-                <div className="text-2xl font-bold text-red-400">{100 - yesPct}%</div>
-                <div className="text-xs text-muted-foreground mt-1">NO Pool</div>
-                <div className="text-sm font-medium mt-1">{lamportsToSol(market.noPool)} LST</div>
+              <div className="rounded-xl bg-violet-500/8 border border-violet-200/60 p-4 text-center animate-scale-in" style={{ animationDelay: '220ms' }}>
+                <div className="text-2xl font-extrabold text-violet-600">{100 - yesPct}%</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wide">No Signal</div>
+                <div className="text-sm font-semibold mt-1 text-violet-700">{lamportsToSol(market.noPool)} LST</div>
               </div>
             </div>
-            <div className="w-full h-3 rounded-full overflow-hidden bg-muted flex">
-              <div className="bg-blue-500 h-full transition-all" style={{ width: `${yesPct}%` }} />
-              <div className="bg-red-500 h-full flex-1" />
+            <div className="w-full h-3 rounded-full overflow-hidden bg-violet-500/15 flex sentiment-bar-glow">
+              <div
+                className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-full rounded-full animate-bar-width relative z-10"
+                style={{ width: `${yesPct}%`, animationDelay: '200ms' }}
+              />
             </div>
           </div>
 
-          {/* Market details */}
-          <div className="rounded-lg border bg-card p-6 space-y-2 text-xs text-muted-foreground">
-            <div className="flex justify-between">
-              <span>LST Mint</span>
-              <code className="font-mono">{market.lstMint.slice(0, 12)}...{market.lstMint.slice(-8)}</code>
+          {/* Market metadata */}
+          <div className="glass-card rounded-xl p-5 space-y-2.5 text-xs text-muted-foreground animate-fade-up" style={{ animationDelay: '160ms' }}>
+            <div className="flex justify-between items-center">
+              <span className="font-medium">LST Mint</span>
+              <code className="font-mono text-foreground/70 bg-muted/50 px-2 py-0.5 rounded">{market.lstMint.slice(0, 12)}...{market.lstMint.slice(-8)}</code>
             </div>
-            <div className="flex justify-between">
-              <span>Created</span>
-              <span>{formatDate(market.createdAt)}</span>
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Created</span>
+              <span>{formatDateUTC(market.createdAt)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Market ID</span>
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Signal ID</span>
               <span>#{market.marketId}</span>
             </div>
           </div>
         </div>
 
-        {/* Right: Position panel */}
-        <div className="space-y-4">
+        {/* Right column: Position panel */}
+        <div className="space-y-5">
           {market.status === 'Open' ? (
-            <div className="rounded-lg border bg-card p-6 space-y-4">
-              <h3 className="font-semibold text-sm">Place Position</h3>
+            <div className="glass-card-elevated rounded-xl p-6 space-y-5 animate-fade-up" style={{ animationDelay: '120ms' }}>
+              <h3 className="font-bold text-sm">Enter Signal</h3>
 
               {!publicKey ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  Connect wallet to place a position
-                </p>
+                <div className="rounded-lg bg-muted/40 p-5 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Connect wallet to take a position
+                  </p>
+                </div>
               ) : (
                 <>
-                  <div className="flex gap-2">
+                  {/* Side toggle — pill segmented control with sliding background */}
+                  <div className="relative flex bg-muted/50 rounded-full p-1">
+                    <div
+                      className={`seg-slider ${side === 'yes' ? 'gradient-yes shadow-glow-yes' : 'gradient-no shadow-glow-no'}`}
+                      data-side={side}
+                    />
                     <button
-                      className={`flex-1 py-2 rounded-md text-sm font-semibold transition-all ${
+                      className={`flex-1 py-2 rounded-full text-sm font-semibold transition-colors relative z-10 ${
                         side === 'yes'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          ? 'text-white'
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                       onClick={() => setSide('yes')}
                     >
                       YES
                     </button>
                     <button
-                      className={`flex-1 py-2 rounded-md text-sm font-semibold transition-all ${
+                      className={`flex-1 py-2 rounded-full text-sm font-semibold transition-colors relative z-10 ${
                         side === 'no'
-                          ? 'bg-red-500 text-white'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          ? 'text-white'
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                       onClick={() => setSide('no')}
                     >
@@ -271,21 +335,39 @@ export default function MarketDetailPage() {
                     </button>
                   </div>
 
-                  <div>
-                    <label className="text-xs text-muted-foreground">Amount (LST)</label>
+                  {/* Amount */}
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Amount (LST)</label>
                     <input
                       type="number"
                       step="0.01"
                       min="0.01"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="w-full mt-1 px-3 py-2 rounded-md border bg-background text-sm"
+                      className="w-full px-4 py-2.5 rounded-lg border bg-white/60 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all"
                     />
-                    <div className="flex gap-1 mt-1">
-                      {['0.05', '0.1', '0.5', '1'].map((v) => (
+
+                    {/* Range slider */}
+                    <input
+                      type="range"
+                      min="0.01"
+                      max="5"
+                      step="0.01"
+                      value={parseFloat(amount) || 0.01}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="w-full h-1.5 rounded-full appearance-none bg-muted cursor-pointer accent-brand-500"
+                    />
+
+                    {/* Quick pills */}
+                    <div className="flex gap-1.5">
+                      {['0.05', '0.1', '0.5', '1', '2'].map((v) => (
                         <button
                           key={v}
-                          className="text-[10px] px-2 py-0.5 rounded border text-muted-foreground hover:text-foreground"
+                          className={`text-[11px] px-3 py-1 rounded-full font-medium transition-all ${
+                            amount === v
+                              ? 'bg-brand-500 text-white'
+                              : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                          }`}
                           onClick={() => setAmount(v)}
                         >
                           {v}
@@ -295,16 +377,26 @@ export default function MarketDetailPage() {
                   </div>
 
                   {total > 0 && (
-                    <div className="text-xs text-muted-foreground">
-                      Implied odds: {side === 'yes' ? yesPct : 100 - yesPct}% |{' '}
-                      Potential payout: {((parseFloat(amount) || 0) * (total / (side === 'yes' ? market.yesPool || 1 : market.noPool || 1))).toFixed(4)} SOL
+                    <div className="rounded-lg bg-muted/30 p-3 space-y-1 text-xs text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Implied odds</span>
+                        <span className="font-semibold text-foreground">{side === 'yes' ? yesPct : 100 - yesPct}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Potential payout</span>
+                        <span className="font-semibold text-foreground">
+                          {((parseFloat(amount) || 0) * (total / (side === 'yes' ? market.yesPool || 1 : market.noPool || 1))).toFixed(4)} LST
+                        </span>
+                      </div>
                     </div>
                   )}
 
                   <button
-                    className={`w-full py-2 rounded-md text-sm font-semibold transition-all ${
-                      side === 'yes' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-red-500 hover:bg-red-600'
-                    } text-white disabled:opacity-50`}
+                    className={`w-full py-3 rounded-xl text-sm font-bold transition-all text-white disabled:opacity-40 btn-signal-pulse ${
+                      side === 'yes'
+                        ? 'gradient-yes hover:shadow-glow-yes'
+                        : 'gradient-no hover:shadow-glow-no'
+                    }`}
                     onClick={async () => {
                       if (!program || !publicKey || !market) return
                       setPlacing(true)
@@ -317,7 +409,6 @@ export default function MarketDetailPage() {
                           return
                         }
                         const lstAmount = new BN(Math.floor(parsed * 1e9))
-                        const marketKey = new PublicKey(market.pubkey)
                         const lstMintKey = new PublicKey(market.lstMint)
 
                         const idBuf = new Uint8Array(8)
@@ -346,9 +437,11 @@ export default function MarketDetailPage() {
                         if (msg.includes('User rejected')) {
                           setTxStatus({ type: 'error', msg: 'Transaction rejected' })
                         } else if (msg.includes('0x0') || msg.includes('already in use')) {
-                          setTxStatus({ type: 'error', msg: 'You already have a position on this market' })
+                          setTxStatus({ type: 'error', msg: 'You already have a position on this signal' })
                         } else if (msg.includes('insufficient')) {
                           setTxStatus({ type: 'error', msg: 'Insufficient LST token balance' })
+                        } else if (msg.includes('AccountNotFound') || msg.includes('could not find account')) {
+                          setTxStatus({ type: 'error', msg: 'LST token account not found — you need this token in your wallet' })
                         } else {
                           setTxStatus({ type: 'error', msg: msg.slice(0, 100) })
                         }
@@ -358,11 +451,11 @@ export default function MarketDetailPage() {
                     }}
                     disabled={placing || !amount || parseFloat(amount.replace(',', '.')) <= 0}
                   >
-                    {placing ? 'Placing...' : `Place ${amount} LST on ${side.toUpperCase()}`}
+                    {placing ? 'Placing...' : `Signal ${side.toUpperCase()} with ${amount} LST`}
                   </button>
 
                   {txStatus && (
-                    <p className={`text-xs ${txStatus.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                    <p className={`text-xs font-medium ${txStatus.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>
                       {txStatus.msg}
                     </p>
                   )}
@@ -370,28 +463,44 @@ export default function MarketDetailPage() {
               )}
             </div>
           ) : (
-            <div className="rounded-lg border bg-card p-6 text-center text-muted-foreground">
-              <p className="text-sm">Market is {market.status.toLowerCase()}</p>
+            <div className="glass-card rounded-xl p-6 text-center">
+              <p className="text-sm text-muted-foreground">Signal is {market.status.toLowerCase()}</p>
             </div>
           )}
 
-          {/* Yield info card */}
-          <div className="rounded-lg border bg-card p-6 space-y-2">
-            <h3 className="font-semibold text-sm">Yield While You Wait</h3>
-            <p className="text-xs text-muted-foreground">
-              Your deposited LST continues earning staking yield while locked in the market.
-              Current estimates:
-            </p>
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">mSOL APY</span>
-              <span className="text-green-400 font-semibold">~7.2%</span>
+          {/* Passive Yield card */}
+          <div className="glass-card rounded-xl p-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Landmark className="h-4 w-4 text-brand-500" />
+              <h3 className="font-semibold text-sm">LST Yield Accrual</h3>
             </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">jitoSOL APY</span>
-              <span className="text-green-400 font-semibold">~7.8%</span>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your deposited LST continues earning staking yield while locked in this signal. You earn regardless of outcome.
+            </p>
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">mSOL APY</span>
+                <span className="font-semibold text-emerald-600">~7.2%</span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-muted-foreground">jitoSOL APY</span>
+                <span className="font-semibold text-emerald-600">~7.8%</span>
+              </div>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+function StatPill({ icon: Icon, label, value, small }: { icon: any; label: string; value: string; small?: boolean }) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg bg-muted/40 px-3 py-2 animate-scale-in">
+      <Icon className="h-3.5 w-3.5 text-brand-500 shrink-0" />
+      <div>
+        <div className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">{label}</div>
+        <div className={`font-semibold ${small ? 'text-[11px]' : 'text-sm'} text-foreground`}>{value}</div>
       </div>
     </div>
   )
