@@ -21,7 +21,7 @@ StakeSignal accepts mSOL, jitoSOL, and other LSTs as collateral for YES/NO posit
 3. Earn staking yield while your position is active
 4. Collect winnings (collateral + yield + opponent's stake) on resolution
 
-## Tech Stack
+## System design
 
 | Layer | Technology |
 |-------|-----------|
@@ -31,7 +31,7 @@ StakeSignal accepts mSOL, jitoSOL, and other LSTs as collateral for YES/NO posit
 | Crank | Python resolver service |
 | Fonts | Plus Jakarta Sans |
 
-## Development
+## Run locally
 
 ```bash
 # Contracts
