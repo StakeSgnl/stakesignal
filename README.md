@@ -1,5 +1,7 @@
 # StakeSignal
 
+![status](https://img.shields.io/badge/status-live%20%C2%B7%20devnet-3b82f6?style=flat-square) ![chain](https://img.shields.io/badge/chain-solana-9945ff?style=flat-square) ![pyth](https://img.shields.io/badge/oracle-pyth-blueviolet?style=flat-square)
+
 **Prediction markets backed by liquid staking tokens.**
 
 > live demo · devnet → [stakesignal.vercel.app](https://stakesignal.vercel.app)
