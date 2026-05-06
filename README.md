@@ -2,6 +2,8 @@
 
 **Prediction markets backed by liquid staking tokens.**
 
+> live demo · devnet → [stakesignal.vercel.app](https://stakesignal.vercel.app)
+
 ## Problem
 
 Prediction markets lock your capital — while you wait for resolution, your SOL earns nothing. That's an unacceptable opportunity cost in DeFi.
