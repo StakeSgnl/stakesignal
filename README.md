@@ -63,4 +63,4 @@ The system consists of three main components:
 
 ## License
 
-MIT
+Released under the MIT License — see [LICENSE](LICENSE) for the full text. The on-chain program, frontend, and resolver crank are all covered; fork it, audit it, build your own LST market on top of it.
