@@ -2,30 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 216 30% 97%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    --secondary: 215 25% 93%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 216 20% 94%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 215 25% 93%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --border: 216 20% 90%;
+    --input: 216 20% 90%;
+    --ring: 221 83% 53%;
+    --radius: 0.75rem;
+
+    --signal-yes: 160 84% 39%;
+    --signal-no: 258 90% 66%;
+    --sidebar-width: 260px;
   }
 }
 
@@ -36,5 +40,351 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(221 83% 53% / 0.18);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(221 83% 53% / 0.32);
+  }
+
+  /* Selection color */
+  ::selection {
+    background: hsl(221 83% 53% / 0.15);
+    color: hsl(222 47% 11%);
+  }
+}
+
+/* ── Keyframes ─────────────────────────────────────────────────── */
+
+@keyframes shimmer-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bar-grow {
+  from { height: 0; }
+}
+
+@keyframes width-grow {
+  from { width: 0; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@keyframes bounce-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.02);
+  }
+  80% {
+    transform: translateY(2px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes nav-indicator {
+  from {
+    opacity: 0;
+    transform: scaleY(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes slide-bg {
+  from { transform: translateX(var(--slide-from, 0)); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes signal-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 8px 2px currentColor; }
+}
+
+@layer utilities {
+  .bg-mesh {
+    background-image:
+      radial-gradient(at 20% 10%, hsla(221, 83%, 53%, 0.06) 0px, transparent 50%),
+      radial-gradient(at 80% 30%, hsla(258, 90%, 66%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 80%, hsla(160, 84%, 39%, 0.04) 0px, transparent 50%);
+  }
+
+  .bg-dot-pattern {
+    background-image: radial-gradient(circle, hsl(221 83% 53% / 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .glass-card {
+    background-color: rgba(255, 255, 255, 0.70);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.50);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+  }
+
+  .glass-card-elevated {
+    background-color: rgba(255, 255, 255, 0.80);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.60);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.06);
+  }
+
+  .shimmer {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    @apply absolute inset-0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      hsl(221 83% 53% / 0.06) 50%,
+      transparent 100%
+    );
+    animation: shimmer-slide 1.5s ease-in-out infinite;
+  }
+
+  .gradient-yes {
+    background-image: linear-gradient(to right, #10b981, #059669);
+  }
+
+  .gradient-no {
+    background-image: linear-gradient(to right, #8b5cf6, #7c3aed);
+  }
+
+  .signal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+  }
+
+  /* ── Card entrance animations ───────────────────────────────── */
+
+  .animate-fade-up {
+    animation: fade-up 0.45s ease-out both;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.35s ease-out both;
+  }
+
+  .animate-bounce-up {
+    animation: bounce-up 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  /* ── Sentiment bar animated width ───────────────────────────── */
+
+  .animate-bar-width {
+    animation: width-grow 0.7s cubic-bezier(0.33, 1, 0.68, 1) both;
+  }
+
+  /* ── Podium bar grow ────────────────────────────────────────── */
+
+  .animate-bar-grow {
+    animation: bar-grow 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  /* ── Pulsing live dot ───────────────────────────────────────── */
+
+  .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #10b981;
+    animation: pulse-dot 1.6s ease-in-out infinite;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+
+  /* ── Card hover lift ────────────────────────────────────────── */
+
+  .card-hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+
+  /* ── Sentiment bar glow behind emerald ──────────────────────── */
+
+  .sentiment-bar-glow {
+    position: relative;
+  }
+  .sentiment-bar-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px 0;
+    border-radius: 9999px;
+    background: linear-gradient(to right, hsl(160 84% 39% / 0.25), transparent);
+    filter: blur(4px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Category accent borders ────────────────────────────────── */
+
+  .border-cat-network    { border-left: 3px solid #10b981; }
+  .border-cat-mev        { border-left: 3px solid #f97316; }
+  .border-cat-defi       { border-left: 3px solid #3b82f6; }
+  .border-cat-validators { border-left: 3px solid #8b5cf6; }
+
+  /* ── Sidebar active nav indicator ───────────────────────────── */
+
+  .nav-active-bar {
+    position: relative;
+  }
+  .nav-active-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: hsl(221 83% 53%);
+    animation: nav-indicator 0.25s ease-out both;
+  }
+
+  /* ── Segmented control sliding background ───────────────────── */
+
+  .seg-slider {
+    position: absolute;
+    inset: 4px;
+    width: calc(50% - 4px);
+    border-radius: 9999px;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+  }
+  .seg-slider[data-side="no"] {
+    transform: translateX(100%);
+  }
+
+  /* ── Signal CTA pulse on hover ──────────────────────────────── */
+
+  .btn-signal-pulse:hover {
+    animation: signal-pulse 1.4s ease-in-out infinite;
+  }
+
+  /* ── Win rate badge gradients ───────────────────────────────── */
+
+  .wr-badge-low    { background: linear-gradient(135deg, #fecaca, #fca5a5); color: #b91c1c; }
+  .wr-badge-mid    { background: linear-gradient(135deg, #fef08a, #fde047); color: #a16207; }
+  .wr-badge-high   { background: linear-gradient(135deg, #bbf7d0, #86efac); color: #15803d; }
+
+  /* ── Logo hover ─────────────────────────────────────────────── */
+
+  .logo-hover {
+    transition: transform 0.2s ease;
+  }
+  .logo-hover:hover {
+    transform: scale(1.06);
+  }
+
+  /* ── Wallet nav item — match sidebar nav links exactly ──── */
+
+  .wallet-nav-item .wallet-adapter-button,
+  .wallet-nav-item .wallet-adapter-button-trigger {
+    background-color: transparent !important;
+    background-image: none !important;
+    background: transparent !important;
+    color: hsl(215 16% 47%) !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    height: auto !important;
+    padding: 0.625rem 0.75rem !important;
+    border-radius: 0.5rem !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+    line-height: 1.25rem !important;
+    transition: all 0.15s ease !important;
+  }
+  .wallet-nav-item .wallet-adapter-button:not([disabled]):hover {
+    background-color: rgba(255,255,255,0.6) !important;
+    color: hsl(222 47% 11%) !important;
+  }
+  .wallet-nav-item .wallet-adapter-button-start-icon {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 0.75rem !important;
+  }
+  .wallet-nav-item .wallet-adapter-dropdown-list {
+    left: 0 !important;
+    min-width: 100% !important;
+    background: rgba(255,255,255,0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(0,0,0,0.08) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1) !important;
+    padding: 0.25rem !important;
+  }
+  .wallet-nav-item .wallet-adapter-dropdown-list-item {
+    background: transparent !important;
+    color: hsl(222 47% 11%) !important;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    border-radius: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+  .wallet-nav-item .wallet-adapter-dropdown-list-item:hover {
+    background: hsl(221 83% 53% / 0.08) !important;
+    color: hsl(221 83% 40%) !important;
   }
 }
