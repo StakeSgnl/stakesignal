@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fafbff"/>
+      <stop offset="100%" stop-color="#eef1fb"/>
+    </linearGradient>
+    <linearGradient id="yes" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="no" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g stroke="#dde2ee" stroke-width="1">
+    <line x1="0" y1="158" x2="1200" y2="158"/>
+    <line x1="0" y1="316" x2="1200" y2="316"/>
+    <line x1="0" y1="474" x2="1200" y2="474"/>
+  </g>
+  <g font-family="sans-serif">
+    <text x="80" y="100" font-size="22" font-weight="600" fill="#10b981" letter-spacing="3">STAKESIGNAL · LST PREDICTION MARKETS</text>
+    <text x="80" y="240" font-size="96" font-weight="800" fill="#0f1535" letter-spacing="-3">Earn yield</text>
+    <text x="80" y="340" font-size="96" font-weight="800" fill="#0f1535" letter-spacing="-3">while you</text>
+    <text x="80" y="440" font-size="96" font-weight="800" fill="#10b981" letter-spacing="-3" font-style="italic">predict.</text>
+    <text x="80" y="510" font-size="26" font-weight="500" fill="#4a5478">mSOL · jitoSOL · bSOL collateral · Pyth resolved</text>
+  </g>
+  <g transform="translate(800,180)">
+    <rect x="0" y="0" width="320" height="84" rx="12" fill="url(#yes)"/>
+    <text x="30" y="40" font-family="sans-serif" font-size="16" font-weight="600" fill="#d1fae5" letter-spacing="2">YES · 67%</text>
+    <text x="30" y="70" font-family="sans-serif" font-size="32" font-weight="700" fill="#ffffff">+5.4% APY</text>
+    <rect x="0" y="104" width="320" height="84" rx="12" fill="url(#no)"/>
+    <text x="30" y="144" font-family="sans-serif" font-size="16" font-weight="600" fill="#ddd6fe" letter-spacing="2">NO · 33%</text>
+    <text x="30" y="174" font-family="sans-serif" font-size="32" font-weight="700" fill="#ffffff">+5.4% APY</text>
+    <g transform="translate(0,220)" stroke="#10b981" stroke-width="2.5" fill="none">
+      <polyline points="0,80 40,72 80,60 120,55 160,40 200,30 240,32 280,18 320,8"/>
+    </g>
+    <g transform="translate(0,220)" stroke="#8b5cf6" stroke-width="2.5" fill="none" opacity="0.7">
+      <polyline points="0,30 40,38 80,52 120,48 160,62 200,70 240,68 280,80 320,90"/>
+    </g>
+  </g>
+  <text x="80" y="585" font-family="sans-serif" font-size="16" fill="#7a83a3" letter-spacing="2">stakesignal.vercel.app</text>
+</svg>
