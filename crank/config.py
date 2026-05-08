@@ -3,6 +3,9 @@ import os
 import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Union
+
+from solders.keypair import Keypair as _SoldersKeypair
 
 try:
     from dotenv import load_dotenv
@@ -58,8 +61,24 @@ FEED_REGISTRY = {
 }
 
 
-def load_keypair_bytes(path: str) -> bytes:
-    resolved = Path(path).expanduser()
-    with open(resolved, 'r') as fh:
-        data = json.load(fh)
-    return bytes(data[:64])
+def read_crank_keypair(path: Union[str, os.PathLike]) -> _SoldersKeypair:
+    """Materialize the crank service keypair.
+
+    Resolution order:
+      1. CRANK_KEYPAIR_JSON env (inline JSON array, with or without [])
+      2. Filesystem path (local dev)
+
+    Returns a solders Keypair ready for signing.
+    """
+    inline = os.getenv('CRANK_KEYPAIR_JSON', '').strip()
+    if inline:
+        if inline.startswith('['):
+            secret = json.loads(inline)
+        else:
+            cleaned = inline.lstrip('([').rstrip(')]')
+            secret = [int(n) for n in cleaned.split(',') if n.strip()]
+        return _SoldersKeypair.from_bytes(bytes(secret[:64]))
+
+    src = Path(path).expanduser()
+    secret = json.loads(src.read_text())
+    return _SoldersKeypair.from_bytes(bytes(secret[:64]))

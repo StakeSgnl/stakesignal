@@ -35,14 +35,14 @@ from config import (
     PYTH_HERMES_URL,
     FEED_REGISTRY,
     MSOL_MINT,
-    load_keypair_bytes,
+    read_crank_keypair,
 )
 from pda import PROGRAM_PUBKEY, derive_factory_pda, derive_market_pda
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format='%(asctime)s ▸ %(levelname)-5s ▸ %(name)s ▸ %(message)s',
+    datefmt='%H:%M:%S',
 )
 log = logging.getLogger('market_creator')
 
@@ -372,7 +372,7 @@ def build_create_market_ix(
 
 def create_market_on_chain(suggestion: dict) -> str | None:
     """Create a market on-chain from a suggestion."""
-    crankKeypair = Keypair.from_bytes(load_keypair_bytes(KEYPAIR_PATH))
+    crankKeypair = read_crank_keypair(KEYPAIR_PATH)
     factoryPda = derive_factory_pda()
     nextMarketId = fetch_factory_total_markets()
     marketPda = derive_market_pda(nextMarketId)

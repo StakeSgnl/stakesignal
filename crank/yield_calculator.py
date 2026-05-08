@@ -30,8 +30,8 @@ from pda import PROGRAM_PUBKEY
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format='%(asctime)s ▸ %(levelname)-5s ▸ %(name)s ▸ %(message)s',
+    datefmt='%H:%M:%S',
 )
 log = logging.getLogger('yield_calc')
 
@@ -155,7 +155,7 @@ def calculate_position_yield(
 def fetch_open_positions() -> list[dict]:
     """Fetch all UserPosition accounts from the program."""
     try:
-        response = rpcClient.get_program_accounts(PROGRAM_PUBKEY, commitment=Confirmed)
+        response = rpcClient.get_program_accounts(PROGRAM_PUBKEY, commitment=Confirmed, encoding='base64')
         if response.value is None:
             return []
 

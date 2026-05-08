@@ -34,14 +34,14 @@ from config import (
     PYTH_PRICE_STALENESS_SECONDS,
     MAX_TITLE_LEN,
     MAX_DESCRIPTION_LEN,
-    load_keypair_bytes,
+    read_crank_keypair,
 )
 from pda import PROGRAM_PUBKEY, derive_market_pda
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format='%(asctime)s ▸ %(levelname)-5s ▸ %(name)s ▸ %(message)s',
+    datefmt='%H:%M:%S',
 )
 log = logging.getLogger('pyth_resolver')
 
@@ -49,8 +49,7 @@ rpcClient = Client(RPC_URL)
 
 
 def get_crank_keypair() -> Keypair:
-    rawBytes = load_keypair_bytes(KEYPAIR_PATH)
-    return Keypair.from_bytes(rawBytes)
+    return read_crank_keypair(KEYPAIR_PATH)
 
 
 def fetch_all_open_markets() -> list[dict]:
@@ -59,6 +58,7 @@ def fetch_all_open_markets() -> list[dict]:
         response = rpcClient.get_program_accounts(
             PROGRAM_PUBKEY,
             commitment=Confirmed,
+            encoding='base64',
         )
         if response.value is None:
             return []
