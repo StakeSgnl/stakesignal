@@ -12,6 +12,6 @@ cluster = "devnet"
 wallet = "./deploy-keypair.json"
 
 [scripts]
-# Integration smoke runs against devnet via scripts/test-on-chain.mjs (see README).
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
 
 [hooks]

@@ -3,10 +3,56 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Globe, Zap, TrendingUp, Server, Clock, Users, Coins } from 'lucide-react'
-import { demoMarketShowcase } from '@/lib/demo-data'
 
-/* ── Landing-page sample showcase (illustrative, not live state) ─── */
-/*    Real markets render under /signals once a wallet is connected. */
+/* ── Hardcoded market preview data ──────────────────────────────── */
+
+const liveSignals = [
+  {
+    title: 'Solana processes 50M+ transactions today',
+    horizon: 'Daily',
+    category: 'Network',
+    yesPct: 72,
+    pool: '4,280',
+    bettors: 38,
+    timeLeft: '6h 14m',
+  },
+  {
+    title: 'A single Jito bundle tip exceeds 100 SOL this week',
+    horizon: 'Weekly',
+    category: 'MEV',
+    yesPct: 41,
+    pool: '12,650',
+    bettors: 94,
+    timeLeft: '3d 8h',
+  },
+  {
+    title: 'Solana DeFi TVL crosses $8B this month',
+    horizon: 'Monthly',
+    category: 'DeFi',
+    yesPct: 63,
+    pool: '31,200',
+    bettors: 212,
+    timeLeft: '18d 4h',
+  },
+  {
+    title: 'Top validator drops below 3% total stake by Friday',
+    horizon: 'Weekly',
+    category: 'Validators',
+    yesPct: 29,
+    pool: '8,100',
+    bettors: 56,
+    timeLeft: '4d 19h',
+  },
+  {
+    title: 'Pyth oracle feed count surpasses 400 this month',
+    horizon: 'Monthly',
+    category: 'DeFi',
+    yesPct: 55,
+    pool: '6,730',
+    bettors: 71,
+    timeLeft: '12d 2h',
+  },
+]
 
 const marketCategories = [
   {
@@ -476,13 +522,13 @@ export default function LandingPage() {
         {/* ── Section 5: LIVE PREVIEW — Horizontal scroll ──────── */}
         <section className="py-20 sm:py-28 border-t border-gray-100 bg-white relative z-10">
           <div className="max-w-7xl mx-auto px-6 sm:px-10">
-            <div className="flex items-end justify-between mb-4">
+            <div className="flex items-end justify-between mb-10">
               <div>
                 <p className="font-mono text-xs tracking-widest text-gray-400 uppercase mb-3">
                   Preview
                 </p>
                 <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-                  Sample Signals
+                  Live Signals
                 </h2>
               </div>
               <Link
@@ -492,18 +538,11 @@ export default function LandingPage() {
                 View all signals
               </Link>
             </div>
-            <p className="text-sm text-gray-500 mb-10 max-w-2xl">
-              Illustrative preview &mdash; connect your wallet on the{' '}
-              <Link href="/signals" className="text-brand-600 font-medium editorial-underline">
-                Signals dashboard
-              </Link>{' '}
-              to see live, on-chain markets and pools.
-            </p>
           </div>
 
           <div className="max-w-7xl mx-auto px-6 sm:px-10">
             <div className="horiz-scroll-row flex gap-5 pb-4">
-              {demoMarketShowcase.map((signal, idx) => (
+              {liveSignals.map((signal, idx) => (
                 <div
                   key={idx}
                   className="signal-card-editorial bg-white border border-gray-200 rounded-xl p-5 space-y-4 hover:border-brand-300 transition-colors"

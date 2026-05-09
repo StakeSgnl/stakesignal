@@ -220,25 +220,8 @@ def fetch_pyth_price(feedId: bytes) -> dict | None:
             log.warning(f'no price data for feed {hexId}')
             return None
 
-        priceData = parsedPrices[0].get('price') or {}
-
-        # Hermes V2 shape: parsed[0].price = { price, conf, expo, publish_time }
-        # publish_time may also live under metadata for older payloads — fall back.
-        rawPublishTime = priceData.get('publish_time')
-        if rawPublishTime is None:
-            metadata = parsedPrices[0].get('metadata') or {}
-            rawPublishTime = metadata.get('publish_time') or 0
-        try:
-            publishTime = int(rawPublishTime)
-        except (TypeError, ValueError):
-            publishTime = 0
-
-        if publishTime <= 0:
-            log.warning(
-                f'missing/invalid publish_time for feed {hexId}; '
-                f'refusing to use price for resolution'
-            )
-            return None
+        priceData = parsedPrices[0]['price']
+        publishTime = parsedPrices[0].get('price', {}).get('publish_time', 0)
 
         price = int(priceData['price'])
         expo = int(priceData['expo'])
