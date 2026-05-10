@@ -309,12 +309,13 @@ export default function PortfolioPage() {
               <div className="mx-auto h-10 w-10 rounded-full bg-muted flex items-center justify-center mb-3">
                 <TrendingUp className="h-5 w-5 text-muted-foreground" />
               </div>
-              <p className="font-medium text-foreground">No positions yet</p>
+              <p className="font-medium text-foreground">Your portfolio is empty</p>
               <p className="text-sm text-muted-foreground mt-1">
+                Open your first position from{' '}
                 <Link href="/" className="text-brand-600 hover:underline">
-                  Browse live signals
+                  the live signals board
                 </Link>{' '}
-                to start earning yield while you predict.
+                — your collateral keeps earning staking yield from the moment you deposit.
               </p>
             </div>
           ) : (
